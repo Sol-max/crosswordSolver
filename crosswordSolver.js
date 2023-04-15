@@ -118,7 +118,7 @@ if (fits) {
   }
 
   // Recursively solve the remaining slots
-  if (solveCrossword(crossword, words, newRows, slots.slice(1))) {
+  if (crosswordSolver(crossword, words, newRows, slots.slice(1))) {
     return newRows;
   }
 }
@@ -143,7 +143,7 @@ if (fits) {
   }
 
   // Recursively solve the remaining slots
-  if (solveCrossword(crossword, words, newRows, slots.slice(1))) {
+  if (crosswordSolver(crossword, words, newRows, slots.slice(1))) {
     return newRows;
   }
 }
@@ -152,7 +152,7 @@ if (fits) {
 return false;
 }
       }}}
-      
+
       function printBoard({ board, rows, cols }) {
         for (let i = 0; i < rows; i++) {
           let rowStr = "";
