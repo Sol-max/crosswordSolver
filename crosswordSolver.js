@@ -26,7 +26,7 @@ function tryWord(word, puzzleArray, row, col, direction) {
     return true;
   }
   
-  function crosswordSolver(grid, words) {
+function crosswordSolver(grid, words) {
     const rows = grid.split('\n');
     const width = rows[0].length;
     const height = rows.length;
@@ -69,11 +69,9 @@ function tryWord(word, puzzleArray, row, col, direction) {
   
     // Try to fill each slot with a word from the list
     for (const slot of slots) {
-        // console.log(`Trying word ${JSON.stringify(slot)}`);
-        console.log(`Trying word "${words}" in slot [${slot.x}, ${slot.y}]`);
+      console.log(`Trying word "${words}" in slot [${slot.x}, ${slot.y}]`);
       for (const word of words) {
         if (word.length === slot.length) {
-            console.log(word);
           // Check if the word fits in the slot horizontally
           let fits = true;
           for (let i = 0; i < word.length; i++) {
@@ -84,7 +82,7 @@ function tryWord(word, puzzleArray, row, col, direction) {
               break;
             }
           }
-          console.log(`Trying word "${word}" in slot [${slot.x}, ${slot.y}]`);
+  
           if (fits) {
             const newRows = rows.map(row => [...row]); // create a copy of the rows
             // Fill in the word horizontally
@@ -92,72 +90,85 @@ function tryWord(word, puzzleArray, row, col, direction) {
               const x = slot.x + i;
               const y = slot.y;
               newRows[y][x] = word[i];
-              //result[`${x},${y}`] = word[i];
             }
             const remainingWords = words.filter(w => w !== word); // remove the used word from the list
-        const result = tryWords(newRows, remainingWords); // try to solve the remaining puzzle recursively
-        if (result !== 'Error') {
-          return result;
-        }
-            words = words.filter(w => w !== word);
-            break;
-          }
-          
-          // Check if the word fits in the slot vertically
-          fits = true;
-          for (let i = 0; i < word.length; i++) {
-            const x = slot.x;
-            const y = slot.y + i;
-            if (rows[y][x] !== '.' && rows[y][x] !== word[i]) {
-              fits = false;
-              break;
+            const result = crosswordSolver(newRows.join('\n'), remainingWords); // try to solve the remaining puzzle recursively
+            if (result !== 'Error') {
+              return result;
             }
           }
-         
-          if (fits) {
-            // Fill in the word vertically
+  
+           // Check if the word fits in the slot vertically
+             fits = true;
             for (let i = 0; i < word.length; i++) {
-              const x = slot.x;
-              const y = slot.y + i;
-              result[`${x},${y}`] = word[i];
+        const x = slot.x;
+            const y = slot.y + i;
+            if (newRows[y][x] !== '-' && newRows[y][x] !== word[i]) {
+    fits = false;
+    break;
+  }
+}
+
+// Fill in the word vertically
+if (fits) {
+  for (let i = 0; i < word.length; i++) {
+    const x = slot.x;
+    const y = slot.y + i;
+    newRows[y][x] = word[i];
+  }
+
+  // Recursively solve the remaining slots
+  if (solveCrossword(crossword, words, newRows, slots.slice(1))) {
+    return newRows;
+  }
+}
+
+// If the word doesn't fit in the slot vertically, backtrack and try the next slot
+newRows = rows.map(row => [...row]);
+fits = true;
+for (let i = 0; i < word.length; i++) {
+  const x = slot.x + i;
+  const y = slot.y;
+  if (newRows[y][x] !== '-' && newRows[y][x] !== word[i]) {
+    fits = false;
+    break;
+  }
+}
+
+if (fits) {
+  for (let i = 0; i < word.length; i++) {
+    const x = slot.x + i;
+    const y = slot.y;
+    newRows[y][x] = word[i];
+  }
+
+  // Recursively solve the remaining slots
+  if (solveCrossword(crossword, words, newRows, slots.slice(1))) {
+    return newRows;
+  }
+}
+
+// If the word doesn't fit in the slot horizontally either, backtrack and try the next word
+return false;
+}
+      }}}
+      
+      function printBoard({ board, rows, cols }) {
+        for (let i = 0; i < rows; i++) {
+          let rowStr = "";
+          for (let j = 0; j < cols; j++) {
+            if (board[i][j] === "") {
+              rowStr += ".";
+            } else {
+              rowStr += board[i][j];
             }
-            words = words.filter(w => w !== word);
-            break;
           }
+          console.log(rowStr);
         }
       }
-    }
+      
   
-    // Build the resulting grid with the filled-in words
-    let output = '';
-    for (let i = 0; i < height; i++) {
-      let row = '';
-      for (let j = 0; j < width; j++) {
-        const cell = rows[i][j];
-        row += (cell === '0') ? '0' : (result[`${j},${i}`] || '.');
-      }
-      output += row + '\n';
-    }
-  
-    return output.trim();
-  }
-    
-  function printBoard(board) {
-    for (let row = 0; row < board.length; row++) {
-      let rowString = '';
-      for (let col = 0; col < board[row].length; col++) {
-        if (board[row][col] === '-') {
-          rowString += '.';
-        } else {
-          rowString += board[row][col];
-        }
-      }
-      console.log(rowString);
-    }
-  }
-   
-  
-   module.exports = { crosswordSolver, tryWord };
+   module.exports = { crosswordSolver, tryWord, printBoard };
    //  module.exports = crosswordSolver;
    // module.exports.tryWord = tryWord;
    // module.exports =tryWord;
