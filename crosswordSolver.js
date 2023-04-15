@@ -153,19 +153,20 @@ return false;
 }
       }}}
 
-      function printBoard({ board, rows, cols }) {
+      function printBoard({ puzzleArray, rows, cols }) {
         for (let i = 0; i < rows; i++) {
           let rowStr = "";
           for (let j = 0; j < cols; j++) {
-            if (board[i][j] === "") {
+            if (puzzleArray[i][j] === "") {
               rowStr += ".";
             } else {
-              rowStr += board[i][j];
+              rowStr += puzzleArray[i][j];
             }
           }
           console.log(rowStr);
         }
       }
+      
       
   
    module.exports = { crosswordSolver, tryWord, printBoard };
