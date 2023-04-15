@@ -1,4 +1,4 @@
-const { crosswordSolver, printBoard } = require("./crosswordSolver");
+const { crosswordSolver, tryWord } = require("./crosswordSolver");
 
 const emptyPuzzle = `2001
 0..0

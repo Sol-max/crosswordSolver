@@ -27,7 +27,16 @@ function tryWord(word, puzzleArray, row, col, direction) {
   }
   
   function crosswordSolver(grid, words) {
-    const rows = grid.split('\n');
+    // console.log(typeof grid); // object
+    
+    if (typeof grid !== 'string') {
+        grid = grid.toString();
+      }
+      // Parse the grid string into a 2D array
+  const rows = grid.split('\n');
+  const board = rows.map(row => row.split(''));
+    // const rows = grid.trim().split('\n').map(row => row.split(''));
+    // const rows = grid.split('\n');
     const width = rows[0].length;
     const height = rows.length;
     const result = {};
@@ -97,7 +106,7 @@ function tryWord(word, puzzleArray, row, col, direction) {
               //result[`${x},${y}`] = word[i];
             }
             const remainingWords = words.filter(w => w !== word); // remove the used word from the list
-        const result = tryWords(newRows, remainingWords); // try to solve the remaining puzzle recursively
+        const result = tryWord(newRows, remainingWords); // try to solve the remaining puzzle recursively
         if (result !== 'Error') {
           return result;
         }
@@ -140,27 +149,13 @@ function tryWord(word, puzzleArray, row, col, direction) {
       }
       output += row + '\n';
     }
-  
-    return output.trim();
+   return output.trim();
   }
 
-      function printBoard({ board, rows, cols }) {
-        for (let i = 0; i < rows; i++) {
-          let rowStr = "";
-          for (let j = 0; j < cols; j++) {
-            if (board[i][j] === "") {
-              rowStr += ".";
-            } else {
-              rowStr += board[i][j];
-            }
-          }
-          console.log(rowStr);
-        }
-      }
-      
+        
       
   
-   module.exports = { crosswordSolver, tryWord, printBoard };
+   module.exports = { crosswordSolver, tryWord};
    //  module.exports = crosswordSolver;
    // module.exports.tryWord = tryWord;
    // module.exports =tryWord;
