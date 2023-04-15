@@ -1,148 +1,111 @@
-function crosswordSolver(puzzle, words) {
-  // Split the puzzle into rows
-  const rows = puzzle.trim().split('\n');
+// importing the necessary modules
+const readline = require('readline');
+const fs = require('fs');
 
-  // Get the length of the rows and columns
-  const numRows = rows.length;
-  const numCols = rows[0].length;
+// modifying the function signature to include input file argument and output file argument
+function crosswordSolver(inputFile, outputFile) {
 
-  // Create a 2D array to represent the crossword puzzle
-  const crossword = new Array(numRows);
-  for (let i = 0; i < numRows; i++) {
-    crossword[i] = new Array(numCols);
+  // reading the input file
+  const input = fs.readFileSync(inputFile, 'utf-8');
+
+  // splitting the input string on newlines and creating an array
+  const inputArray = input.split('\n');
+
+  // retrieving the size of the matrix from the first element of the array
+  const matrixSize = inputArray[0];
+
+  // retrieving the words to fill from the remaining elements of the array
+  const words = inputArray.slice(1, inputArray.length);
+
+  // an array in which we will construct the final crossword grid
+  const filledGrid = [];
+
+  // constructing a filledGrid full of spaces (empty)
+  for (let i = 0; i < matrixSize; i += 1) {
+    filledGrid.push([]);
+    for (let j = 0; j < matrixSize; j += 1) {
+      filledGrid[i].push(' ');
+    }
   }
 
-  // Initialize the crossword puzzle with empty spaces
-  for (let i = 0; i < numRows; i++) {
-    for (let j = 0; j < numCols; j++) {
-      if (rows[i][j] === '.') {
-        crossword[i][j] = ' ';
-      } else {
-        crossword[i][j] = null;
+  // getting the empty spaces in the crossword and adding their x, y coordinates and direction (horizontal/vertical) to an array
+  const emptySpaces = [];
+
+  for (let i = 0; i < matrixSize; i += 1) {
+    for (let j = 0; j < matrixSize; j += 1) {
+      // if the current slot is a number, it's the beginning of a new word, so add it
+      if (inputArray[i][j] !== '.') {
+        if (i + 1 < matrixSize && inputArray[i + 1][j] !== '.') {
+          // vertical word here, so we want to include everything from here down
+          let wordLength = 1;
+          while (i + wordLength < matrixSize && inputArray[i + wordLength][j] !== '.') {
+            wordLength += 1;
+          }
+          emptySpaces.push({
+            x: i,
+            y: j,
+            length: wordLength,
+            direction: 'down',
+          });
+        }
+        if (j + 1 < matrixSize && inputArray[i][j + 1] !== '.') {
+          // horizontal word here, so we want to include everything from here right
+          let wordLength = 1;
+          while (j + wordLength < matrixSize && inputArray[i][j + wordLength] !== '.') {
+            wordLength += 1;
+          }
+          emptySpaces.push({
+            x: i,
+            y: j,
+            length: wordLength,
+            direction: 'across',
+          });
+        }
       }
     }
   }
 
-  // Parse the puzzle to get the positions of the words
-  const positions = [];
-  let currentPos = 1;
-  for (let i = 0; i < numRows; i++) {
-    for (let j = 0; j < numCols; j++) {
-      if (rows[i][j] === '0' || rows[i][j] === '1') {
-        // Check if the current position has a horizontal word
-        if ((j === 0 || rows[i][j - 1] === '.') && (j + 1 < numCols && rows[i][j + 1] !== '.')) {
-          const wordLength = parseInt(rows[i][j], 10);
-          if (wordLength > 1) {
-            positions.push({
-              pos: currentPos,
-              row: i,
-              col: j,
-              len: wordLength,
-              dir: 'h'
-            });
-            currentPos++;
+  // sorting the empty spaces by length (in descending order)
+  emptySpaces.sort((a, b) => b.length - a.length);
+
+  // creating an array of all possible word placements
+  const possiblePlacements = [];
+
+  // going through each empty space
+  for (let i = 0; i < emptySpaces.length; i += 1) {
+    const { x, y, length, direction } = emptySpaces[i];
+
+// getting all the words the right length that can fit here
+const possibleWords = [];
+for (let j = 0; j < words.length; j += 1) {
+  if (words[j].length === length) {
+    if (direction === 'across') {
+      if (y + length <= matrixSize) {
+        let isPossible = true;
+        for (let k = 0; k < length; k += 1) {
+          if (filledGrid[x][y + k] !== ' ' && filledGrid[x][y + k] !== words[j][k]) {
+            isPossible = false;
+            break;
           }
         }
-
-        // Check if the current position has a vertical word
-        if ((i === 0 || rows[i - 1][j] === '.') && (i + 1 < numRows && rows[i + 1][j] !== '.')) {
-          const wordLength = parseInt(rows[i][j], 10);
-          if (wordLength > 1) {
-            positions.push({
-              pos: currentPos,
-              row: i,
-              col: j,
-              len: wordLength,
-              dir: 'v'
-            });
-            currentPos++;
-          }
+        if (isPossible) {
+          possibleWords.push(words[j]);
         }
-      }
-    }
-  }
-
-  // Check if the total length of the words is equal to the sum of the lengths of the positions
-  const totalLength = words.reduce((acc, word) => acc + word.length, 0);
-  const positionsLength = positions.reduce((acc, pos) => acc + pos.len, 0);
-  if (totalLength !== positionsLength) {
-    console.log('Error');
-    return;
-  }
-
-  // Create a map of the words for faster lookup
-  const wordsMap = new Map(words.map(word => [word, true]));
-
-  // Fill in the crossword puzzle with the words
-  for (const pos of positions) {
-    const { row, col, len, dir } = pos;
-    let word = null;
-    for (const w of words) {
-      if (w.length === len) {
-        if (dir === 'h') {
-          // Check if the word fits horizontally
-          let canFit = true;
-          for (let i = 0; i < len; i++) {
-            if (crossword[row][col + i] !== null && crossword[row][col + i] !== w[i]) {
-              canFit = false;
-              break;
-            }
-                  }
-      if (canFit) {
-        word = w;
-        break;
       }
     } else {
-      // Check if the word fits vertically
-      let canFit = true;
-      for (let i = 0; i < len; i++) {
-        if (crossword[row + i][col] !== null && crossword[row + i][col] !== w[i]) {
-          canFit = false;
-          break;
+      if (x + length <= matrixSize) {
+        let isPossible = true;
+        for (let k = 0; k < length; k += 1) {
+          if (filledGrid[x + k][y] !== ' ' && filledGrid[x + k][y] !== words[j][k]) {
+            isPossible = false;
+            break;
+          }
         }
-      }
-      if (canFit) {
-        word = w;
-        break;
+        if (isPossible) {
+          possibleWords.push(words[j]);
+        }
       }
     }
   }
 }
-if (word === null) {
-  console.log('Error');
-  return;
-}
-for (let i = 0; i < len; i++) {
-  if (dir === 'h') {
-    crossword[row][col + i] = word[i];
-  } else {
-    crossword[row + i][col] = word[i];
-  }
-}
-wordsMap.delete(word);
-}
-
-// Check if there are any unused words
-if (wordsMap.size > 0) {
-console.log('Error');
-return;
-}
-
-// Convert the crossword puzzle back to a string
-const filledPuzzle = crossword.map(row => row.join('')).join('\n');
-console.log(filledPuzzle);
-}
-
-
-// how to use
-const emptyPuzzle = `2001
-0..0
-1000
-0..0`
-const words = ['casa', 'alan', 'ciao', 'anta']
-crosswordSolver(emptyPuzzle, words);
-// Output: casa
-//         i..l
-//         anta
-//         o..n
-
+  }}
