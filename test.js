@@ -10,8 +10,9 @@ const words = ["casa", "alan", "ciao", "anta"];
 // solve the crossword puzzle and get the board, rows, and cols as an object
 const crosswordSolution = crosswordSolver(emptyPuzzle, words);
 
-if (crosswordSolution === "Error") {
+if (crosswordSolution.board === "Error") {
   console.log("The puzzle cannot be solved");
 } else {
-  printBoard(crosswordSolution); // pass the crosswordSolution object to printBoard
+    console.log(crosswordSolution);
+  // printBoard(crosswordSolution); // pass the crosswordSolution object to printBoard
 }
