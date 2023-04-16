@@ -1,64 +1,44 @@
-function crosswordSolver(puzzle, words, debug = false) {
-  const blankPositions = getBlankPositions(puzzle, debug);
 
+function tryWord(word, position, direction, puzzle) {
+  const [row, col] = position;
+
+  const puzzleCopy = JSON.parse(JSON.stringify(puzzle));
+
+  for (let i = 0; i < word.length; i++) {
+    if (direction === "across") {
+      if (puzzleCopy[row][col + i] === "." || puzzleCopy[row][col + i] === word[i]) {
+        puzzleCopy[row][col + i] = word[i];
+      } else {
+        return null;
+      }
+    } else {
+      if (puzzleCopy[row + i][col] === "." || puzzleCopy[row + i][col] === word[i]) {
+        puzzleCopy[row + i][col] = word[i];
+      } else {
+        return null;
+      }
+    }
+  }
+
+  return puzzleCopy;
+}
+
+function solve(words, puzzle) {
+  const blankPositions = getBlankPositions(puzzle);
   let solutionObj = null;
 
-  solve(blankPositions, 0);
+  const result = findSolution(words, puzzle, blankPositions, 0, solutionObj);
 
-  if (solutionObj !== null) {
-    const solutionBoard = solutionObj.solution.map(row => row.join('')).join('\n');
-    console.log(solutionBoard);
-    return solutionBoard;
+  if (result) {
+    return result.solution;
   } else {
-    console.log("The puzzle cannot be solved");
     return null;
   }
 }
-  function getBlankPositions(puzzle, debug = false) {
-    const blankPositions = [];
 
-    for (let i = 0; i < puzzle.length; i++) {
-      for (let j = 0; j < puzzle[i].length; j++) {
-        if (puzzle[i][j] === ".") {
-          blankPositions.push([i, j]);
-        }
-      }
-    }
-
-    if (debug) {
-      console.log("Blank Positions:", blankPositions);
-    }
-
-    return blankPositions;
-}
-
-  function tryWord(word, [row, col], direction, puzzle) {
-    const wordArr = [...word];
-
-    for (let i = 0; i < wordArr.length; i++) {
-      const newRow = direction === "down" ? row + i : row;
-      const newCol = direction === "across" ? col + i : col;
-
-      if (puzzle[newRow][newCol] !== "." && puzzle[newRow][newCol] !== wordArr[i]) {
-        return false;
-      }
-    }
-
-    const newPuzzle = puzzle.map(row => [...row]);
-
-    for (let i = 0; i < wordArr.length; i++) {
-      const newRow = direction === "down" ? row + i : row;
-      const newCol = direction === "across" ? col + i : col;
-
-      newPuzzle[newRow][newCol] = wordArr[i];
-    }
-
-    return newPuzzle;
-}
-
-function solve(puzzle, blankPositions, blankIndex, solutionObj) {
+function findSolution(words, puzzle, blankPositions, blankIndex, solutionObj) {
   if (blankIndex === blankPositions.length) {
-    return true;
+    return solutionObj;
   }
 
   const [row, col] = blankPositions[blankIndex];
@@ -70,54 +50,86 @@ function solve(puzzle, blankPositions, blankIndex, solutionObj) {
       const newPuzzleAcross = tryWord(word, [row, col], "across", puzzle);
 
       if (newPuzzleAcross) {
-        const result = solve(newPuzzleAcross, blankPositions, blankIndex + 1, solutionObj);
+        const newSolutionObj = {
+          direction: "across",
+          word: word,
+          solution: newPuzzleAcross
+        };
+        const result = findSolution(words, newPuzzleAcross, blankPositions, blankIndex + 1, newSolutionObj);
 
         if (result) {
-          solutionObj = {
-            direction: "across",
-            word: word,
-            solution: newPuzzleAcross
-          };
-          return true;
+          return result;
         }
       }
 
       const newPuzzleDown = tryWord(word, [row, col], "down", puzzle);
 
       if (newPuzzleDown) {
-        const result = solve(newPuzzleDown, blankPositions, blankIndex + 1, solutionObj);
+        const newSolutionObj = {
+          direction: "down",
+          word: word,
+          solution: newPuzzleDown
+        };
+        const result = findSolution(words, newPuzzleDown, blankPositions, blankIndex + 1, newSolutionObj);
 
         if (result) {
-          solutionObj = {
-            direction: "down",
-            word: word,
-            solution: newPuzzleDown
-          };
-          return true;
+          return result;
         }
       }
     }
   }
 
-  return false;
+  return null;
 }
-function crossword(puzzle) {
-  const blankPositions = getBlankPositions(puzzle);
-  let solutionObj = null;
-  let blankIndex = 0;
 
-  const result = solve(puzzle, blankPositions, blankIndex, solutionObj);
+function getBlankPositions(puzzle, debug = false) {
+  const blankPositions = [];
+
+  for (let i = 0; i < puzzle.length; i++) {
+    for (let j = 0; j < puzzle[i].length; j++) {
+      if (puzzle[i][j] === ".") {
+        blankPositions.push([i, j]);
+      }
+    }
+  }
+
+  if (debug) {
+    console.log("Blank Positions:", blankPositions);
+  }
+
+  return blankPositions;
+}
+
+function crossword(puzzle, words) {
+  const blankPositions = [];
+
+  for (let i = 0; i < puzzle.length; i++) {
+    for (let j = 0; j < puzzle[i].length; j++) {
+      if (puzzle[i][j] === ".") {
+        blankPositions.push([i, j]);
+      }
+    }
+  }
+
+  if (blankPositions.length === 0) {
+    return puzzle;
+  }
+
+  const sortedWords = words.sort((a, b) => b.length - a.length);
+  const result = solve(blankPositions, 0, sortedWords, puzzle);
 
   if (result) {
-    console.log(solutionObj.solution.map(row => row.join(" ")).join("\n"));
+    return solutionObj.solution;
   } else {
-    console.log("The puzzle cannot be solved");
+    return null;
   }
 }
 
+module.exports = { solve, crossword };
 
 
-module.exports = { solve, crosswordSolver};
+
+// module.exports = { solve, crosswordSolver};
 
  
   //  module.exports = { crosswordSolver };
