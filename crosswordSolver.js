@@ -13,7 +13,7 @@ function crosswordSolver(puzzle, words, debug = false) {
     console.log("The puzzle cannot be solved");
     return null;
   }
-
+}
   function getBlankPositions(puzzle, debug = false) {
     const blankPositions = [];
 
@@ -30,7 +30,7 @@ function crosswordSolver(puzzle, words, debug = false) {
     }
 
     return blankPositions;
-  }
+}
 
   function tryWord(word, [row, col], direction, puzzle) {
     const wordArr = [...word];
@@ -54,60 +54,56 @@ function crosswordSolver(puzzle, words, debug = false) {
     }
 
     return newPuzzle;
+}
+
+function solve(blankPositions, blankIndex, puzzle, words) {
+  if (blankIndex === blankPositions.length) {
+    return true;
   }
 
-  function solve(blankPositions, blankIndex) {
-    if (blankIndex === blankPositions.length) {
-      return true;
-    }
+  const [row, col] = blankPositions[blankIndex];
 
-    const [row, col] = blankPositions[blankIndex];
+  for (let i = 0; i < words.length; i++) {
+    const word = words[i];
 
-    for (let i = 0; i < words.length; i++) {
-      const word = words[i];
+    if (word.length === blankPositions[blankIndex].length) {
+      const newPuzzleAcross = tryWord(word, [row, col], "across", puzzle);
 
-      if (word.length === blankPositions[blankIndex].length) {
-        const newPuzzleAcross = tryWord(word, [row, col], "across", puzzle);
+      if (newPuzzleAcross) {
+        const result = solve(blankPositions, blankIndex + 1, newPuzzleAcross, words);
 
-        if (newPuzzleAcross) {
-          const result = solve(blankPositions, blankIndex + 1);
-
-          if (result) {
-            solutionObj = {
-              direction: "across",
-              word: word,
-              solution: newPuzzleAcross
-            };
-            return true;
-          }
+        if (result) {
+          solutionObj = {
+            direction: "across",
+            word: word,
+            solution: newPuzzleAcross
+          };
+          return true;
         }
+      }
 
-        const newPuzzleDown = tryWord(word, [row, col], "down", puzzle);
+      const newPuzzleDown = tryWord(word, [row, col], "down", puzzle);
 
-        if (newPuzzleDown) {
-          const result = solve(blankPositions, blankIndex + 1);
+      if (newPuzzleDown) {
+        const result = solve(blankPositions, blankIndex + 1, newPuzzleDown, words);
 
-          if (result) {
-            solutionObj = {
-              direction: "down",
-              word: word,
-              solution: newPuzzleDown
-            };
-            return true;
-          }
+        if (result) {
+          solutionObj = {
+            direction: "down",
+            word: word,
+            solution: newPuzzleDown
+          };
+          return true;
         }
       }
     }
-
-    return false;
   }
+
+  return false;
 }
 
-// module.exports = crosswordSolver;
 
-module.exports = {
-  crosswordSolver,
-};
+module.exports = { solve, crosswordSolver};
 
  
   //  module.exports = { crosswordSolver };
