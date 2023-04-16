@@ -1,13 +1,21 @@
-const { solve } = require("./crosswordSolver");
+// Description: Test the crossword solver
 
-const puzzle = [  ['2', '0', '0', '1'],
-  ['0', '.', '.', '0'],
-  ['1', '0', '0', '0'],
-  ['0', '.', '.', '0']
-];
+// import the crossword solver
+const { crosswordSolver } = require("./crosswordSolver");
 
-const words = ['casa', 'il', 'anta', 'on'];
+const emptyPuzzle = `2001
+0..0
+1000
+0..0`;
 
-const solution = solve(puzzle, words);
+const words = ["casa", "alan", "ciao", "anta"];
 
-console.log(solution ? solution.join("\n") : "The puzzle cannot be solved");
+// solve the crossword puzzle and get the board, rows, and cols as an object
+const crosswordSolution = crosswordSolver(emptyPuzzle, words);
+// if the puzzle can be solved, print the solution
+console.log (crosswordSolution);
+// if the puzzle cannot be solved, print an error message
+if (crosswordSolution instanceof Error) {
+  console.log("The puzzle cannot be solved");
+} 
+
