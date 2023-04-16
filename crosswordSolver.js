@@ -149,7 +149,59 @@ function tryWord(word, puzzleArray, row, col, direction) {
       }
       output += row + '\n';
     }
-   return output.trim();
+   // return output.trim();
+   function placeWord(board, word, row, col, direction) {
+    const [deltaRow, deltaCol] = direction === "across" ? [0, 1] : [1, 0];
+    const slots = [];
+    let score = 0;
+  
+    for (let i = 0; i < word.length; i++) {
+      const newRow = row + i * deltaRow;
+      const newCol = col + i * deltaCol;
+      const letter = word[i];
+  
+      if (board[newRow][newCol] === null || board[newRow][newCol] === letter) {
+        board[newRow][newCol] = letter;
+        score += letterScores[letter];
+        slots.push([newRow, newCol, i]);
+      } else {
+        // Word placement is invalid, so clear any letters that have been placed
+        for (let j = i - 1; j >= 0; j--) {
+          const undoRow = row + j * deltaRow;
+          const undoCol = col + j * deltaCol;
+          board[undoRow][undoCol] = null;
+        }
+        return { board: null, slots: null };
+      }
+    }
+  
+    const slotNum = placeWord.length; // get the index of the new word
+    placeWord.push(word); // push the new word into the placedWords array
+  
+    return { board, slots, score, slotNum };
+  }
+  
+// Build the meta object with the slot number and index of each character
+const meta = {};
+for (let i = 0; i < slots.length; i++) {
+  const { x, y, length } = slots[i];
+  const word = placeWord[i];
+  for (let j = 0; j < length; j++) {
+    if (rows[y][x] === null) {
+      meta[`${y},${x}`] = { word: i, index: j };
+    }
+     if (word.orientation === 'horizontal') {
+       x++;
+     } else {
+      y++;
+     }
+  }
+}
+
+
+
+  // Return the board and meta object
+  return { board: output.trim(), meta };
   }
 
         
@@ -157,6 +209,6 @@ function tryWord(word, puzzleArray, row, col, direction) {
   
    module.exports = { crosswordSolver, tryWord};
    //  module.exports = crosswordSolver;
-   // module.exports.tryWord = tryWord;
-   // module.exports =tryWord;
+    // module.exports.tryWord = tryWord;
+ // module.exports =tryWord;
  

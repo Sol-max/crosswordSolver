@@ -1,18 +1,32 @@
-const { crosswordSolver, tryWord } = require("./crosswordSolver");
+const { crosswordSolver } = require("./crosswordSolver");
+
+function printBoard(board) {
+  for (let row of board) {
+    let rowString = "";
+    for (let cell of row) {
+      if (cell === null) {
+        rowString += ".";
+      } else {
+        rowString += board.meta[cell].char;
+      }
+    }
+    console.log(rowString);
+  }
+}
 
 const emptyPuzzle = `2001
 0..0
 1000
 0..0`;
 
+const rows = emptyPuzzle.trim().split('\n');
 const words = ["casa", "alan", "ciao", "anta"];
 
 // solve the crossword puzzle and get the board, rows, and cols as an object
 const crosswordSolution = crosswordSolver(emptyPuzzle, words);
 
-if (crosswordSolution.board === "Error") {
+if (crosswordSolution === "Error") {
   console.log("The puzzle cannot be solved");
 } else {
-    console.log(crosswordSolution);
-  // printBoard(crosswordSolution); // pass the crosswordSolution object to printBoard
+  printBoard(crosswordSolution.board); // pass the crosswordSolution object to printBoard
 }
