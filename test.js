@@ -7,12 +7,11 @@ const emptyPuzzle = `2001
 
 const words = ["casa", "alan", "ciao", "anta"];
 
-const filledPuzzle = crosswordSolver(emptyPuzzle, words);
+const solutionObj = crosswordSolver(emptyPuzzle, words);
 
-
-
-if (filledPuzzle === "Error") {
+if (solutionObj === "Error" || solutionObj === null) {
   console.log("The puzzle cannot be solved");
 } else {
-  console.log(filledPuzzle);; // pass the crosswordSolution object to printBoard
+  const solutionBoard = solutionObj.solution.map(row => row.join('')).join('\n');
+  console.log(solutionBoard);
 }

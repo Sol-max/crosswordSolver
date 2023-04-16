@@ -1,79 +1,120 @@
-function crosswordSolver(puzzleString, words) {
-  // Convert the puzzle string to a 2D array
-  const puzzle = puzzleString.split('\n').map(row => row.split(''));
-
-  // Recursively try to fill in the blank spaces with words
-  function tryFill(puzzle, blankIndex) {
-    console.log('puzzle:', puzzle);
-    console.log('blankIndex:', blankIndex);
-    console.log('blankPositions:', blankPositions);
-    // If we've filled in all the blank spaces, return the filled puzzle
-    if (blankIndex === blankPositions.length) {
-      return puzzle.map(row => row.join('')).join('\n');
-    }
-
-    const [i, j] = blankPositions[blankIndex];
-    for (let word of words) {
-      if (tryWord(puzzle, word, i, j)) {
-        const newPuzzle = tryFill(puzzle, blankIndex + 1);
-        if (newPuzzle !== null) {
-          return newPuzzle;
-        }
-      }
-    }
-
-    // If we've tried all the words and none of them worked, return null
-    return null;
-  }
-
-  // Find the positions of the blank spaces in the puzzle
+function getBlankPositions(puzzle, debug = false) {
   const blankPositions = [];
+
   for (let i = 0; i < puzzle.length; i++) {
     for (let j = 0; j < puzzle[i].length; j++) {
-      if (puzzle[i][j] === '.') {
+      if (puzzle[i][j] === ".") {
         blankPositions.push([i, j]);
       }
     }
   }
 
-  console.log('Blank Positions:', blankPositions);
-
-  // Try to fill in the blank spaces with words
-  const filledPuzzle = tryFill(puzzle, 0);
-
-  return filledPuzzle;
-}
-
-
-function tryWord(puzzle, word, i, j) {
-  console.log("tryWord: ", word, i, j);
-  const clonePuzzle = JSON.parse(JSON.stringify(puzzle));
-  let skip = false;
-  // Check if the word fits horizontally
-  if (j + word.length <= clonePuzzle[i].length && clonePuzzle[i].slice(j, j + word.length).every((letter, index) => letter === '.' || letter === word[index])) {
-    const newPuzzle = clonePuzzle.map(row => [...row]);
-    newPuzzle[i].splice(j, word.length, ...word.split(''));
-    return newPuzzle;
+  if (debug) {
+    console.log("Blank Positions:", blankPositions);
   }
 
-  // Check if the word fits vertically
-  if (i + word.length <= clonePuzzle.length && clonePuzzle.slice(i, i + word.length).map(row => row[j]).every((letter, index) => letter === '.' || letter === word[index])) {
-    const newPuzzle = clonePuzzle.map(row => [...row]);
-    for (let index = 0; index < word.length; index++) {
-      newPuzzle[i + index][j] = word[index];
+  return blankPositions;
+}
+
+function tryWord(puzzle, word, row, col, direction, debug = false) {
+  const puzzleCopy = puzzle.map(row => [...row]);
+  let i = row;
+  let j = col;
+
+  for (let k = 0; k < word.length; k++) {
+    if (puzzleCopy[i][j] === "." || puzzleCopy[i][j] === word[k]) {
+      puzzleCopy[i][j] = word[k];
+      if (direction === "across") {
+        j++;
+      } else {
+        i++;
+      }
+    } else {
+      if (debug) {
+        console.log(`Cannot place ${word} at row ${row} and column ${col}`);
+      }
+      return null;
     }
-    return newPuzzle;
   }
 
-  // If the word doesn't fit horizontally or vertically, return null
-  return null;
+  if (debug) {
+    console.log(`Placed ${word} at row ${row} and column ${col}`);
+  }
+
+  return puzzleCopy;
+}
+
+function solve(puzzle, words, blankPositions, blankIndex) {
+  console.log("Blank Positions:", blankPositions);
+  console.log("Blank Index:", blankIndex);
+  for (let i = 0; i < words.length; i++) {
+    const word = words[i];
+    const isValidWord = tryWord(word, row, col, direction, puzzle);
+    if (isValidWord) {
+      const newPuzzle = placeWord(word, row, col, direction, puzzle);
+      const solutionObj = solve(newPuzzle, words, blankIndex + 1, debug);
+      if (solutionObj !== "Error") {
+        return solutionObj;
+      }
+    }
+  }
+  
+  if (blankIndex === blankPositions.length) {
+    console.log("Solution Found!");
+    return { success: true, solution: puzzle };
+  }
+
+  const word = words.find(w => w.length === blankPositions[blankIndex].length);
+  console.log("Try Word:", word, blankPositions[blankIndex]);
+
+  if (!word) {
+    console.log("No suitable word found");
+    return { success: false };
+  }
+
+  for (let i = 0; i < word.length; i++) {
+    puzzle[blankPositions[blankIndex][i][0]][blankPositions[blankIndex][i][1]] = word[i];
+  }
+  console.log("Puzzle after Try:", puzzle);
+
+  const result = solve(puzzle, words, blankPositions, blankIndex + 1);
+  if (result.success) {
+    return result;
+  } else {
+    for (let i = 0; i < word.length; i++) {
+      puzzle[blankPositions[blankIndex][i][0]][blankPositions[blankIndex][i][1]] = '.';
+    }
+    console.log("Puzzle after Backtrack:", puzzle);
+  }
+
+  return solve(puzzle, words, blankPositions, blankIndex);
 }
 
 
+function crosswordSolver(puzzleString, wordList) {
+  const puzzle = puzzleString.split("\n").map(row => row.split(""));
+  const words = wordList.slice();
+  const blankPositions = getBlankPositions(puzzle);
 
+  const solution = solve(puzzle, words, 0, blankPositions);
 
-  
-    module.exports = { crosswordSolver };
+  if (solution === null) {
+    return "Error";
+  } else {
+    const solutionObj = {
+      words: wordList,
+      solution: solution,
+    };
+    return solutionObj;
+  }
+}
+
+module.exports = {
+  crosswordSolver,
+};
+
+ 
+  //  module.exports = { crosswordSolver };
   // module.exports = crosswordSolver;
     // module.exports.tryWord = tryWord;
  // module.exports =tryWord;
