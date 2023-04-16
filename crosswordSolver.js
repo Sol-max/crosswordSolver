@@ -56,7 +56,7 @@ function crosswordSolver(puzzle, words, debug = false) {
     return newPuzzle;
 }
 
-function solve(blankPositions, blankIndex, puzzle, words) {
+function solve(puzzle, blankPositions, blankIndex, solutionObj) {
   if (blankIndex === blankPositions.length) {
     return true;
   }
@@ -70,7 +70,7 @@ function solve(blankPositions, blankIndex, puzzle, words) {
       const newPuzzleAcross = tryWord(word, [row, col], "across", puzzle);
 
       if (newPuzzleAcross) {
-        const result = solve(blankPositions, blankIndex + 1, newPuzzleAcross, words);
+        const result = solve(newPuzzleAcross, blankPositions, blankIndex + 1, solutionObj);
 
         if (result) {
           solutionObj = {
@@ -85,7 +85,7 @@ function solve(blankPositions, blankIndex, puzzle, words) {
       const newPuzzleDown = tryWord(word, [row, col], "down", puzzle);
 
       if (newPuzzleDown) {
-        const result = solve(blankPositions, blankIndex + 1, newPuzzleDown, words);
+        const result = solve(newPuzzleDown, blankPositions, blankIndex + 1, solutionObj);
 
         if (result) {
           solutionObj = {
@@ -101,6 +101,20 @@ function solve(blankPositions, blankIndex, puzzle, words) {
 
   return false;
 }
+function crossword(puzzle) {
+  const blankPositions = getBlankPositions(puzzle);
+  let solutionObj = null;
+  let blankIndex = 0;
+
+  const result = solve(puzzle, blankPositions, blankIndex, solutionObj);
+
+  if (result) {
+    console.log(solutionObj.solution.map(row => row.join(" ")).join("\n"));
+  } else {
+    console.log("The puzzle cannot be solved");
+  }
+}
+
 
 
 module.exports = { solve, crosswordSolver};
